@@ -158,6 +158,68 @@ const JEFES := [
 	},
 ]
 
+# --- Logros -----------------------------------------------------------------
+# "campo" es el contador de Guardado que se compara contra "meta". Al cumplirse
+# se paga el premio en lucas una sola vez.
+const LOGROS := [
+	{
+		"id": "cien", "nombre": "Buen comienzo",
+		"desc": "Mata 100 enemigos en total",
+		"campo": "muertes", "meta": 100, "premio": 80,
+	},
+	{
+		"id": "mil", "nombre": "Carnicero de fonda",
+		"desc": "Mata 1000 enemigos en total",
+		"campo": "muertes", "meta": 1000, "premio": 250,
+	},
+	{
+		"id": "diez_mil", "nombre": "Plaga nacional",
+		"desc": "Mata 10000 enemigos en total",
+		"campo": "muertes", "meta": 10000, "premio": 800,
+	},
+	{
+		"id": "aguante_3", "nombre": "Aguanta el carrete",
+		"desc": "Sobrevive 3 minutos en una partida",
+		"campo": "mejor_tiempo", "meta": 180, "premio": 120,
+	},
+	{
+		"id": "aguante_8", "nombre": "Llegaste a Chiloe",
+		"desc": "Sobrevive 8 minutos en una partida",
+		"campo": "mejor_tiempo", "meta": 480, "premio": 350,
+	},
+	{
+		"id": "jefe_1", "nombre": "Se cayo el tio",
+		"desc": "Derrota tu primer jefe",
+		"campo": "jefes_derrotados", "meta": 1, "premio": 150,
+	},
+	{
+		"id": "jefe_5", "nombre": "Cazador de mitos",
+		"desc": "Derrota 5 jefes en total",
+		"campo": "jefes_derrotados", "meta": 5, "premio": 400,
+	},
+	{
+		"id": "nivel_20", "nombre": "Veinte de nivel",
+		"desc": "Llega a nivel 20 en una partida",
+		"campo": "mejor_nivel", "meta": 20, "premio": 200,
+	},
+	{
+		"id": "evo_1", "nombre": "Se puso buena la cosa",
+		"desc": "Evoluciona un arma",
+		"campo": "evoluciones", "meta": 1, "premio": 250,
+	},
+	{
+		"id": "evo_5", "nombre": "Maestro fondero",
+		"desc": "Evoluciona 5 armas en total",
+		"campo": "evoluciones", "meta": 5, "premio": 600,
+	},
+	{
+		"id": "insistente", "nombre": "Una mas y me voy",
+		"desc": "Juega 10 partidas",
+		"campo": "partidas", "meta": 10, "premio": 150,
+	},
+]
+
+
 # --- Personajes -------------------------------------------------------------
 # Los multiplicadores se aplican sobre las estadisticas base del jugador.
 # "costo" en lucas; 0 es el que viene desbloqueado de entrada.
@@ -188,7 +250,7 @@ const PERSONAJES := [
 		"id": "micrero", "nombre": "El Micrero",
 		"desc": "Rapido y ataca seguido, pero es de vidrio.",
 		"arma": "micro", "costo": 900,
-		"vida": 0.75, "velocidad": 1.18, "dano": 1.0, "vel_ataque": 1.25,
+		"vida": 0.82, "velocidad": 1.18, "dano": 1.0, "vel_ataque": 1.25,
 		"color": Color(0.42, 0.62, 0.82),
 	},
 ]

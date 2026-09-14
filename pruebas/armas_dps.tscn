@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://carmasdps0001"]
+
+[ext_resource type="Script" path="res://pruebas/armas_dps.gd" id="1_dps"]
+
+[node name="PruebaArmas" type="Node"]
+script = ExtResource("1_dps")

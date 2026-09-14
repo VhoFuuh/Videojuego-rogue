@@ -36,11 +36,18 @@ func alcance() -> float:
 
 
 func abertura() -> float:
-	return TAU if evolucionada else deg_to_rad(110.0)
+	return TAU if evolucionada else deg_to_rad(135.0)
 
 
 func _golpear() -> void:
-	_angulo_golpe = _jugador.mirando().angle()
+	# Apunta al enemigo mas cercano, no hacia donde caminas. Apuntando al
+	# movimiento le pegaba al aire cada vez que el jugador retrocedia, que es
+	# justo lo que uno hace todo el rato en este tipo de juego.
+	var objetivo := enemigo_mas_cercano(alcance() + 40.0)
+	if objetivo != null:
+		_angulo_golpe = (objetivo.global_position - _jugador.global_position).angle()
+	else:
+		_angulo_golpe = _jugador.mirando().angle()
 	_animacion = 1.0
 
 	var d := golpe(dano())

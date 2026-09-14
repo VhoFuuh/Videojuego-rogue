@@ -6,7 +6,6 @@ extends Node2D
 const MAX_ENEMIGOS := 350
 const MARGEN_APARICION := 70.0
 const ZOOM := 1.5
-const TAMANO_CELDA := 64.0
 
 const AVISO_JEFE := 25.0
 
@@ -14,11 +13,14 @@ var tiempo := 0.0
 var indice_bioma := -1
 var lucas := 0
 var jefes_derrotados := 0
+var muertes := 0
+var evoluciones := 0
 
 var _jefe_invocado_en := -1
 
 var _jugador: Player
 var _camara: Camera2D
+var _fondo: Fondo
 var _hud: Hud
 var _menu: MenuMejoras
 var _pausa: MenuPausa
@@ -38,6 +40,12 @@ func _ready() -> void:
 	_camara.position_smoothing_enabled = true
 	_camara.position_smoothing_speed = 8.0
 	_jugador.add_child(_camara)
+
+	_fondo = Fondo.new()
+	_fondo.seguir(_jugador)
+	add_child(_fondo)
+	Fx.camara = _camara
+	Fx.limpiar()
 
 	_hud = preload("res://scripts/ui/hud.gd").new()
 	add_child(_hud)
@@ -80,7 +88,6 @@ func _process(delta: float) -> void:
 
 	tiempo += delta
 	_hud.set_tiempo(tiempo)
-	queue_redraw()
 
 	var bioma_actual := mini(int(tiempo / Data.DURACION_BIOMA), Data.BIOMAS.size() - 1)
 	if bioma_actual != indice_bioma:
@@ -194,6 +201,7 @@ func _on_jefe_murio() -> void:
 
 
 func _on_enemigo_murio(posicion: Vector2, xp: int, lucas_ganadas: int) -> void:
+	muertes += 1
 	if lucas_ganadas > 0:
 		lucas += lucas_ganadas
 		_hud.set_lucas(lucas)
@@ -210,29 +218,9 @@ func _cambiar_bioma(indice: int) -> void:
 	indice_bioma = indice
 	var bioma: Dictionary = Data.BIOMAS[indice]
 	RenderingServer.set_default_clear_color(bioma.fondo)
+	_fondo.cambiar_bioma(indice)
 	_hud.set_bioma(bioma.nombre)
 	_hud.anunciar(bioma.nombre)
-
-
-func _draw() -> void:
-	if not is_instance_valid(_jugador):
-		return
-	# Cuadricula del suelo: sin esto no se nota que el jugador se mueve.
-	var bioma: Dictionary = Data.BIOMAS[indice_bioma]
-	var centro := _jugador.global_position
-	var extension := Vector2(900, 620)
-	var inicio := ((centro - extension) / TAMANO_CELDA).floor() * TAMANO_CELDA
-	var fin := centro + extension
-	var color: Color = bioma.suelo
-
-	var x := inicio.x
-	while x < fin.x:
-		draw_line(Vector2(x, inicio.y), Vector2(x, fin.y), color, 1.0)
-		x += TAMANO_CELDA
-	var y := inicio.y
-	while y < fin.y:
-		draw_line(Vector2(inicio.x, y), Vector2(fin.x, y), color, 1.0)
-		y += TAMANO_CELDA
 
 
 # --- Mejoras ----------------------------------------------------------------
@@ -332,6 +320,8 @@ func _mostrar_mejoras() -> void:
 
 
 func _on_mejora_elegida(mejora: Dictionary) -> void:
+	if mejora.tipo == "evolucion":
+		evoluciones += 1
 	_jugador.aplicar_opcion(mejora)
 	_mejoras_pendientes -= 1
 	if _mejoras_pendientes > 0:
@@ -360,7 +350,8 @@ func _on_jugador_murio() -> void:
 	var nivel_final := _jugador.nivel
 	_jugador.queue_free()
 	_hud.ocultar_jefe()
-	Guardado.registrar_partida(lucas, tiempo, nivel_final, jefes_derrotados)
+	var logros_nuevos := Guardado.registrar_partida(
+		lucas, tiempo, nivel_final, jefes_derrotados, muertes, evoluciones)
 
 	_pantalla_derrota = CanvasLayer.new()
 	_pantalla_derrota.layer = 30
@@ -384,8 +375,8 @@ func _on_jugador_murio() -> void:
 		["Sobreviviste %d:%02d en %s" % [
 			int(tiempo) / 60, int(tiempo) % 60, Data.BIOMAS[indice_bioma].nombre], 22],
 		["Llegaste a nivel %d" % nivel_final, 22],
+		["Mataste %d enemigos" % muertes, 20],
 		["Ganaste $ %d lucas" % lucas, 24],
-		["R para otra run    ·    ESC para volver a la fonda", 18],
 	]
 	for linea in lineas:
 		var etiqueta := Label.new()
@@ -393,3 +384,17 @@ func _on_jugador_murio() -> void:
 		etiqueta.add_theme_font_size_override("font_size", linea[1])
 		etiqueta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		columna.add_child(etiqueta)
+
+	for l in logros_nuevos:
+		var logro := Label.new()
+		logro.text = "LOGRO: %s  (+$ %d)" % [l.nombre, int(l.premio)]
+		logro.add_theme_font_size_override("font_size", 19)
+		logro.add_theme_color_override("font_color", Estilo.DORADO)
+		logro.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		columna.add_child(logro)
+
+	var pie := Label.new()
+	pie.text = "R para otra run    ·    ESC para volver a la fonda"
+	pie.add_theme_font_size_override("font_size", 18)
+	pie.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	columna.add_child(pie)

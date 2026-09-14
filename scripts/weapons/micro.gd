@@ -6,7 +6,7 @@ extends Arma
 
 const DISTANCIA_SALIDA := 620.0
 
-var _espera := 3.0
+var _espera := 0.4
 
 
 func _process(delta: float) -> void:
@@ -19,11 +19,11 @@ func _process(delta: float) -> void:
 
 
 func intervalo() -> float:
-	return maxf(2.2, 6.0 - nivel * 0.45)
+	return maxf(0.85, 1.9 - nivel * 0.22)
 
 
 func dano() -> int:
-	return (45 + nivel * 22) * (2 if evolucionada else 1)
+	return (16 + nivel * 11) * (2 if evolucionada else 1)
 
 
 func cantidad() -> int:

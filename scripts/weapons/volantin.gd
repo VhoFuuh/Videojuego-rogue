@@ -3,7 +3,7 @@ extends Arma
 # Volantines que giran alrededor del jugador y cortan con el hilo curado.
 # Evolucion (Comision de volantines): mas volantines, mas lejos y mas rapidos.
 
-const RADIO_CORTE := 20.0
+const RADIO_CORTE := 34.0
 const INTERVALO_CORTE := 0.25
 
 var _angulo := 0.0
@@ -31,11 +31,11 @@ func cantidad() -> int:
 
 
 func distancia() -> float:
-	return (70.0 + nivel * 6.0) * (1.5 if evolucionada else 1.0)
+	return (48.0 + nivel * 9.0) * (1.6 if evolucionada else 1.0)
 
 
 func dano() -> int:
-	return (5 + nivel * 3) * (2 if evolucionada else 1)
+	return (7 + nivel * 4) * (2 if evolucionada else 1)
 
 
 func _posiciones() -> Array[Vector2]:

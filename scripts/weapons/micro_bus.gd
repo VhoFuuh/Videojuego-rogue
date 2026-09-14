@@ -9,7 +9,7 @@ var direccion := Vector2.RIGHT
 var velocidad := 620.0
 var dano := 60
 var largo := 92.0
-var alto := 38.0
+var alto := 54.0
 var color := Color(0.95, 0.78, 0.18)
 
 var _vivido := 0.0

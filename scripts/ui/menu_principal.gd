@@ -70,6 +70,16 @@ func _construir() -> void:
 		get_tree().change_scene_to_file("res://scenes/fonda.tscn"))
 	columna.add_child(fonda)
 
+	var logros := Estilo.boton("Logros  (%d/%d)" % [Guardado.logros.size(), Data.LOGROS.size()])
+	logros.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file("res://scenes/logros.tscn"))
+	columna.add_child(logros)
+
+	var opciones := Estilo.boton("Opciones")
+	opciones.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file("res://scenes/opciones.tscn"))
+	columna.add_child(opciones)
+
 	var salir := Estilo.boton("Salir")
 	salir.pressed.connect(func() -> void: get_tree().quit())
 	columna.add_child(salir)

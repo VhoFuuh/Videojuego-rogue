@@ -17,7 +17,15 @@ func _ready() -> void:
 
 	await _ver("res://scenes/menu.tscn", "menu_principal")
 	await _ver("res://scenes/personajes.tscn", "personajes")
+	Guardado.muertes = 480
+	Guardado.mejor_tiempo = 205.0
+	Guardado.mejor_nivel = 16
+	Guardado.jefes_derrotados = 2
+	Guardado.partidas = 7
+	Guardado.revisar_logros()
 	await _ver("res://scenes/fonda.tscn", "fonda")
+	await _ver("res://scenes/logros.tscn", "logros")
+	await _ver("res://scenes/opciones.tscn", "opciones")
 	get_tree().quit()
 
 
@@ -46,7 +54,7 @@ func _probar_guardado() -> void:
 	print("  al maximo: nivel=%d/%d | comprar de nuevo: %s (esperado false)"
 		% [Guardado.nivel_de(mejora.id), mejora.max, Guardado.comprar(mejora)])
 
-	Guardado.registrar_partida(250, 173.5, 14, 2)
+	Guardado.registrar_partida(250, 173.5, 14, 2, 500, 1)
 
 	# Round-trip: se recarga desde disco y debe salir lo mismo.
 	var lucas_esperadas := Guardado.lucas

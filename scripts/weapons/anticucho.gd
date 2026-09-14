@@ -19,7 +19,7 @@ func _process(delta: float) -> void:
 
 
 func intervalo() -> float:
-	return maxf(0.22, (0.80 - nivel * 0.05) * (0.7 if evolucionada else 1.0))
+	return maxf(0.18, (0.52 - nivel * 0.04) * (0.7 if evolucionada else 1.0))
 
 
 func dano() -> int:
@@ -33,7 +33,7 @@ func proyectiles() -> int:
 
 
 func perforacion() -> int:
-	return (1 + int(nivel / 4)) + (2 if evolucionada else 0)
+	return (4 + nivel) + (3 if evolucionada else 0)
 
 
 func _disparar() -> void:

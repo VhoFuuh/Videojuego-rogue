@@ -175,10 +175,14 @@ func recibir_dano(cantidad: int) -> void:
 		return
 	vida -= cantidad
 	_flash = 0.08
+	Fx.numero(global_position, cantidad, Color(1.0, 0.92, 0.55))
 	if es_jefe:
 		vida_jefe_cambio.emit(max(vida, 0), vida_maxima)
 	if vida <= 0:
 		Audio.sonar("muerte", randf_range(0.85, 1.15), 0.7)
+		Fx.explosion(global_position, color, 12 if es_jefe else 6)
+		if es_jefe:
+			Fx.sacudir(9.0)
 		murio.emit(global_position, xp_valor, lucas)
 		queue_free()
 	else:

@@ -13,10 +13,59 @@ var jefes_derrotados := 0
 var partidas := 0
 var personajes := ["huaso"]  # desbloqueados
 var personaje := "huaso"     # el elegido para la proxima partida
+var muertes := 0
+var evoluciones := 0
+var logros := []
+var volumen_musica := 0.75
+var volumen_efectos := 0.85
+var pantalla_completa := false
 
 
 func _ready() -> void:
 	cargar()
+	aplicar_ajustes()
+
+
+func aplicar_ajustes() -> void:
+	# Audio se carga antes que este autoload, asi que los volumenes se le pasan
+	# desde aca una vez leido el guardado.
+	Audio.volumen_musica = volumen_musica
+	Audio.volumen_efectos = volumen_efectos
+	DisplayServer.window_set_mode(
+		DisplayServer.WINDOW_MODE_FULLSCREEN if pantalla_completa
+		else DisplayServer.WINDOW_MODE_WINDOWED)
+
+
+# --- Logros -----------------------------------------------------------------
+
+func valor_de(campo: String) -> float:
+	match campo:
+		"muertes": return float(muertes)
+		"evoluciones": return float(evoluciones)
+		"mejor_tiempo": return mejor_tiempo
+		"mejor_nivel": return float(mejor_nivel)
+		"jefes_derrotados": return float(jefes_derrotados)
+		"partidas": return float(partidas)
+	return 0.0
+
+
+func tiene_logro(id: String) -> bool:
+	return logros.has(id)
+
+
+# Devuelve los logros recien conseguidos y paga sus premios.
+func revisar_logros() -> Array:
+	var nuevos := []
+	for l in Data.LOGROS:
+		if tiene_logro(l.id):
+			continue
+		if valor_de(str(l.campo)) >= float(l.meta):
+			logros.append(l.id)
+			lucas += int(l.premio)
+			nuevos.append(l)
+	if not nuevos.is_empty():
+		guardar()
+	return nuevos
 
 
 func datos_personaje(id: String) -> Dictionary:
@@ -76,13 +125,17 @@ func comprar(mejora: Dictionary) -> bool:
 	return true
 
 
-func registrar_partida(lucas_ganadas: int, tiempo: float, nivel: int, jefes: int) -> void:
+func registrar_partida(lucas_ganadas: int, tiempo: float, nivel: int, jefes: int,
+		muertes_partida: int, evoluciones_partida: int) -> Array:
 	lucas += lucas_ganadas
 	partidas += 1
 	jefes_derrotados += jefes
+	muertes += muertes_partida
+	evoluciones += evoluciones_partida
 	mejor_tiempo = maxf(mejor_tiempo, tiempo)
 	mejor_nivel = maxi(mejor_nivel, nivel)
 	guardar()
+	return revisar_logros()
 
 
 func guardar() -> void:
@@ -99,6 +152,12 @@ func guardar() -> void:
 		"partidas": partidas,
 		"personajes": personajes,
 		"personaje": personaje,
+		"muertes": muertes,
+		"evoluciones": evoluciones,
+		"logros": logros,
+		"volumen_musica": volumen_musica,
+		"volumen_efectos": volumen_efectos,
+		"pantalla_completa": pantalla_completa,
 	}, "\t"))
 	f.close()
 
@@ -123,6 +182,19 @@ func cargar() -> void:
 	mejor_nivel = int(datos.get("mejor_nivel", 0))
 	jefes_derrotados = int(datos.get("jefes_derrotados", 0))
 	partidas = int(datos.get("partidas", 0))
+	volumen_musica = clampf(float(datos.get("volumen_musica", 0.75)), 0.0, 1.0)
+	volumen_efectos = clampf(float(datos.get("volumen_efectos", 0.85)), 0.0, 1.0)
+	pantalla_completa = bool(datos.get("pantalla_completa", false))
+	muertes = int(datos.get("muertes", 0))
+	evoluciones = int(datos.get("evoluciones", 0))
+
+	# Solo se aceptan ids de logros que existan hoy.
+	logros = []
+	var guardados_logros = datos.get("logros", [])
+	if typeof(guardados_logros) == TYPE_ARRAY:
+		for l in Data.LOGROS:
+			if guardados_logros.has(l.id):
+				logros.append(l.id)
 
 	# Solo se aceptan personajes que existan hoy; el huaso siempre esta.
 	personajes = ["huaso"]
@@ -155,4 +227,7 @@ func borrar_todo() -> void:
 	partidas = 0
 	personajes = ["huaso"]
 	personaje = "huaso"
+	muertes = 0
+	evoluciones = 0
+	logros = []
 	guardar()

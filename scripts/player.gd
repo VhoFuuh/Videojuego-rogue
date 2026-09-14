@@ -128,6 +128,9 @@ func recibir_dano(cantidad: int) -> void:
 		return
 	vida -= cantidad
 	Audio.sonar("dano")
+	Fx.sacudir(7.0)
+	Fx.explosion(global_position, Color(0.95, 0.35, 0.35), 8)
+	Fx.numero(global_position, cantidad, Color(1.0, 0.45, 0.45))
 	_invulnerable = TIEMPO_INVULNERABLE
 	_flash = 0.15
 	vida_cambio.emit(max(vida, 0), vida_maxima)
