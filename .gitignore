@@ -1,0 +1,8 @@
+# Cache de importacion de Godot: se regenera solo al abrir el proyecto.
+.godot/
+
+# Exportaciones
+build/
+export_presets.cfg
+
+.DS_Store
