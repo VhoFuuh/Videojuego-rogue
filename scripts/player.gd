@@ -49,7 +49,8 @@ func _ready() -> void:
 
 	_aplicar_personaje()
 	_aplicar_permanentes()
-	agregar_arma(str(Guardado.personaje_actual().arma))
+	for id in Guardado.personaje_actual().armas:
+		agregar_arma(str(id))
 
 
 func _aplicar_personaje() -> void:

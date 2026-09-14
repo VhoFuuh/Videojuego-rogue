@@ -90,8 +90,12 @@ func _carta(p: Dictionary) -> PanelContainer:
 	desc.custom_minimum_size = Vector2(0, 52)
 	columna.add_child(desc)
 
-	var arma: Dictionary = Data.ARMAS[p.arma]
-	columna.add_child(Estilo.label("Empieza con: %s" % arma.nombre, 13, arma.color))
+	var nombres := []
+	for id in p.armas:
+		nombres.append(str(Data.ARMAS[id].nombre))
+	var color_arma: Color = Data.ARMAS[p.armas[0]].color
+	columna.add_child(Estilo.label(
+		"Empieza con: %s" % " + ".join(nombres), 13, color_arma))
 	columna.add_child(Estilo.label(_resumen(p), 13, Color(0.74, 0.72, 0.70)))
 
 	var boton: Button
