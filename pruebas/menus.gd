@@ -10,9 +10,13 @@ func _ready() -> void:
 	_probar_guardado()
 
 	Guardado.lucas = 900
+	# Se desbloquea uno solo para ver las dos variantes de la carta.
+	Guardado.personajes = ["huaso", "minero"]
+	Guardado.personaje = "minero"
 	Guardado.guardar()
 
 	await _ver("res://scenes/menu.tscn", "menu_principal")
+	await _ver("res://scenes/personajes.tscn", "personajes")
 	await _ver("res://scenes/fonda.tscn", "fonda")
 	get_tree().quit()
 

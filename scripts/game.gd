@@ -243,15 +243,96 @@ func _on_subio_nivel() -> void:
 		_mostrar_mejoras()
 
 
-func _mostrar_mejoras() -> void:
-	get_tree().paused = true
-	var opciones := Data.MEJORAS.duplicate()
+func _evoluciones_listas() -> Array:
+	var salida := []
+	for evo in Data.EVOLUCIONES:
+		if _jugador.puede_evolucionar(evo):
+			salida.append({
+				"tipo": "evolucion", "arma": evo.arma,
+				"nombre": evo.nombre, "desc": evo.desc, "color": evo.color,
+			})
+	return salida
+
+
+func _subidas_de_lo_que_lleva() -> Array:
+	var salida := []
+	for id in Data.ARMAS:
+		var n := _jugador.nivel_arma(id)
+		if n > 0 and n < Arma.MAX_NIVEL:
+			var d: Dictionary = Data.ARMAS[id]
+			salida.append({
+				"tipo": "arma", "id": id, "nombre": "%s  Nv %d" % [d.nombre, n + 1],
+				"desc": d.desc, "color": d.color,
+			})
+	for id in Data.PASIVAS:
+		var n := _jugador.nivel_pasiva(id)
+		var d: Dictionary = Data.PASIVAS[id]
+		if n > 0 and n < int(d.max):
+			salida.append({
+				"tipo": "pasiva", "id": id, "nombre": "%s  Nv %d" % [d.nombre, n + 1],
+				"desc": d.desc, "color": d.color,
+			})
+	return salida
+
+
+func _cosas_nuevas() -> Array:
+	var salida := []
+	if _jugador.hay_cupo_de_arma():
+		for id in Data.ARMAS:
+			if _jugador.nivel_arma(id) == 0:
+				var d: Dictionary = Data.ARMAS[id]
+				salida.append({
+					"tipo": "arma", "id": id, "nombre": d.nombre,
+					"desc": d.desc, "color": d.color,
+				})
+	if _jugador.hay_cupo_de_pasiva():
+		for id in Data.PASIVAS:
+			if _jugador.nivel_pasiva(id) == 0:
+				var d: Dictionary = Data.PASIVAS[id]
+				salida.append({
+					"tipo": "pasiva", "id": id, "nombre": d.nombre,
+					"desc": d.desc, "color": d.color,
+				})
+	return salida
+
+
+func _armar_opciones() -> Array:
+	var opciones := _evoluciones_listas()
+	var propias := _subidas_de_lo_que_lleva()
+	var nuevas := _cosas_nuevas()
+	propias.shuffle()
+	nuevas.shuffle()
+
+	# Se ofrecen primero dos mejoras de lo que ya llevas. Sin esta preferencia,
+	# con catorce opciones repartidas al azar nunca se sube un arma al maximo
+	# y las evoluciones no ocurririan en toda la partida.
+	while opciones.size() < 2 and not propias.is_empty():
+		opciones.append(propias.pop_back())
+	while opciones.size() < 3 and not nuevas.is_empty():
+		opciones.append(nuevas.pop_back())
+	while opciones.size() < 3 and not propias.is_empty():
+		opciones.append(propias.pop_back())
+
 	opciones.shuffle()
-	_menu.mostrar(opciones.slice(0, 3))
+	return opciones.slice(0, 3)
+
+
+func _mostrar_mejoras() -> void:
+	var opciones := _armar_opciones()
+	if opciones.is_empty():
+		# Con todo al maximo ya no hay que ofrecer: se cura y se sigue, porque
+		# dejar el menu vacio congelaria la partida en pausa.
+		_jugador.curar(25)
+		_mejoras_pendientes = 0
+		_menu.ocultar()
+		get_tree().paused = false
+		return
+	get_tree().paused = true
+	_menu.mostrar(opciones)
 
 
 func _on_mejora_elegida(mejora: Dictionary) -> void:
-	_jugador.aplicar_mejora(mejora)
+	_jugador.aplicar_opcion(mejora)
 	_mejoras_pendientes -= 1
 	if _mejoras_pendientes > 0:
 		_mostrar_mejoras()

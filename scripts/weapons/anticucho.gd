@@ -1,18 +1,12 @@
-extends Node2D
+extends Arma
 
 # Arma inicial: dispara sola al enemigo mas cercano.
 # Es a distancia a proposito: asi retroceder sigue siendo productivo.
+# Evolucion (Parrillada completa): dispara en circulo, sin apuntar.
 
 const ALCANCE := 560.0
 
-var nivel := 1
-
 var _espera := 0.0
-var _jugador: Player
-
-
-func _ready() -> void:
-	_jugador = get_parent() as Player
 
 
 func _process(delta: float) -> void:
@@ -25,49 +19,51 @@ func _process(delta: float) -> void:
 
 
 func intervalo() -> float:
-	return maxf(0.30, 0.80 - nivel * 0.05)
+	return maxf(0.22, (0.80 - nivel * 0.05) * (0.7 if evolucionada else 1.0))
 
 
 func dano() -> int:
-	return 9 + nivel * 5
+	return (9 + nivel * 5) * (2 if evolucionada else 1)
 
 
 func proyectiles() -> int:
+	if evolucionada:
+		return 8
 	return 1 + int(nivel / 3)
 
 
 func perforacion() -> int:
-	return 1 + int(nivel / 4)
-
-
-func _enemigo_mas_cercano() -> Node2D:
-	var mejor: Node2D = null
-	var mejor_distancia := ALCANCE
-	for enemigo in get_tree().get_nodes_in_group("enemigos"):
-		var d: float = _jugador.global_position.distance_to(enemigo.global_position)
-		if d < mejor_distancia:
-			mejor_distancia = d
-			mejor = enemigo
-	return mejor
+	return (1 + int(nivel / 4)) + (2 if evolucionada else 0)
 
 
 func _disparar() -> void:
-	var objetivo := _enemigo_mas_cercano()
-	if objetivo == null:
-		return
+	var base: Vector2
+	if evolucionada:
+		# La parrillada no apunta: cubre las ocho direcciones.
+		base = Vector2.RIGHT.rotated(randf() * TAU)
+	else:
+		var objetivo := enemigo_mas_cercano(ALCANCE)
+		if objetivo == null:
+			return
+		base = (objetivo.global_position - _jugador.global_position).normalized()
 
 	Audio.sonar("disparo", randf_range(0.92, 1.08))
 
-	var base := (objetivo.global_position - _jugador.global_position).normalized()
 	var total := proyectiles()
-	var contenedor := _jugador.get_parent()
-
+	var contenedor := mundo()
 	for i in total:
-		# Con varios proyectiles se abren en abanico.
-		var desvio := 0.0 if total == 1 else lerpf(-0.22, 0.22, float(i) / float(total - 1))
+		var desvio: float
+		if evolucionada:
+			desvio = TAU * float(i) / float(total)
+		elif total == 1:
+			desvio = 0.0
+		else:
+			desvio = lerpf(-0.22, 0.22, float(i) / float(total - 1))
+
 		var bala := Proyectil.new()
 		bala.direccion = base.rotated(desvio)
-		bala.dano = int(dano() * _jugador.mult_dano)
+		bala.dano = golpe(dano())
 		bala.perforacion = perforacion()
+		bala.ardiente = evolucionada
 		bala.global_position = _jugador.global_position
 		contenedor.add_child(bala)

@@ -158,70 +158,173 @@ const JEFES := [
 	},
 ]
 
-# Cada mejora se aplica en player.gd -> aplicar_mejora().
-# "arma" significa que desbloquea o sube de nivel un arma.
-const MEJORAS := [
+# --- Personajes -------------------------------------------------------------
+# Los multiplicadores se aplican sobre las estadisticas base del jugador.
+# "costo" en lucas; 0 es el que viene desbloqueado de entrada.
+const PERSONAJES := [
 	{
-		"id": "piscola",
-		"nombre": "Piscola",
-		"desc": "+15% velocidad de movimiento",
-		"color": Color(0.95, 0.80, 0.35),
+		"id": "huaso", "nombre": "El Huaso",
+		"desc": "Equilibrado. El de siempre.",
+		"arma": "anticucho", "costo": 0,
+		"vida": 1.0, "velocidad": 1.0, "dano": 1.0, "vel_ataque": 1.0,
+		"color": Color(0.78, 0.24, 0.26),
 	},
 	{
-		"id": "pebre",
-		"nombre": "Pebre picante",
-		"desc": "+20% daño",
-		"color": Color(0.90, 0.35, 0.30),
+		"id": "minero", "nombre": "El Minero",
+		"desc": "Pega mucho mas fuerte, pero aguanta menos y es lento.",
+		"arma": "chuzo", "costo": 400,
+		"vida": 0.85, "velocidad": 0.92, "dano": 1.30, "vel_ataque": 1.0,
+		"color": Color(0.92, 0.70, 0.16),
 	},
 	{
-		"id": "empanada",
-		"nombre": "Empanada de pino",
-		"desc": "+20 vida maxima y cura 30",
-		"color": Color(0.90, 0.70, 0.40),
+		"id": "pescadora", "nombre": "La Pescadora",
+		"desc": "Mucha vida y regeneracion, pero mas lenta.",
+		"arma": "cacerola", "costo": 600,
+		"vida": 1.45, "velocidad": 0.90, "dano": 0.95, "vel_ataque": 1.0,
+		"regen": 0.5,
+		"color": Color(0.90, 0.62, 0.18),
 	},
 	{
-		"id": "mote",
-		"nombre": "Mote con huesillo",
-		"desc": "+0.6 vida regenerada por segundo",
-		"color": Color(0.85, 0.60, 0.35),
+		"id": "micrero", "nombre": "El Micrero",
+		"desc": "Rapido y ataca seguido, pero es de vidrio.",
+		"arma": "micro", "costo": 900,
+		"vida": 0.75, "velocidad": 1.18, "dano": 1.0, "vel_ataque": 1.25,
+		"color": Color(0.42, 0.62, 0.82),
 	},
-	{
-		"id": "hilo_curado",
-		"nombre": "Hilo curado",
-		"desc": "+20% velocidad de ataque",
-		"color": Color(0.60, 0.85, 0.95),
-	},
-	{
-		"id": "iman",
-		"nombre": "Iman de feria",
-		"desc": "+50 radio de recogida de XP",
-		"color": Color(0.65, 0.65, 0.95),
-	},
-	{
-		"id": "zapatillas",
-		"nombre": "Zapatillas de fonda",
-		"desc": "+12% velocidad y +10 vida maxima",
-		"color": Color(0.55, 0.90, 0.60),
-	},
-	{
-		"id": "anticucho",
+]
+
+
+# --- Armas ------------------------------------------------------------------
+# El jugador puede llevar hasta MAX_ARMAS a la vez, asi que cada partida obliga
+# a elegir un camino distinto.
+const MAX_ARMAS := 4
+
+const ARMAS := {
+	"anticucho": {
 		"nombre": "Anticucho flamigero",
-		"desc": "Dispara mas rapido y mas proyectiles",
-		"arma": true,
+		"desc": "Dispara solo al enemigo mas cercano",
+		"script": "res://scripts/weapons/anticucho.gd",
 		"color": Color(1.0, 0.55, 0.15),
 	},
-	{
-		"id": "cacerola",
+	"cacerola": {
 		"nombre": "Cacerola",
-		"desc": "Cacerolazo: mas daño y alcance",
-		"arma": true,
+		"desc": "Cacerolazo que golpea todo alrededor",
+		"script": "res://scripts/weapons/cacerola.gd",
 		"color": Color(0.80, 0.80, 0.85),
 	},
-	{
-		"id": "volantin",
+	"volantin": {
 		"nombre": "Volantin con hilo curado",
 		"desc": "Volantines que orbitan y cortan",
-		"arma": true,
+		"script": "res://scripts/weapons/volantin.gd",
 		"color": Color(0.95, 0.55, 0.75),
+	},
+	"chuzo": {
+		"nombre": "Chuzo minero",
+		"desc": "Golpe de arco hacia donde miras. Pega fuerte, pero de cerca",
+		"script": "res://scripts/weapons/chuzo.gd",
+		"color": Color(0.70, 0.70, 0.74),
+	},
+	"terremoto": {
+		"nombre": "Copa de terremoto",
+		"desc": "Deja charcos que van dañando",
+		"script": "res://scripts/weapons/terremoto.gd",
+		"color": Color(0.95, 0.82, 0.40),
+	},
+	"quiltro_fiel": {
+		"nombre": "Quiltro fiel",
+		"desc": "Un perro que sale solo a morder",
+		"script": "res://scripts/weapons/quiltro_fiel.gd",
+		"color": Color(0.75, 0.62, 0.45),
+	},
+	"micro": {
+		"nombre": "Micro amarilla",
+		"desc": "Cruza la pantalla atropellando todo",
+		"script": "res://scripts/weapons/micro.gd",
+		"color": Color(0.95, 0.78, 0.18),
+	},
+}
+
+
+# --- Pasivas ----------------------------------------------------------------
+# Suben estadisticas. Una pasiva al maximo habilita la evolucion de su arma.
+const MAX_PASIVAS := 4
+
+const PASIVAS := {
+	"piscola": {
+		"nombre": "Piscola", "desc": "+15% velocidad de movimiento",
+		"max": 4, "color": Color(0.95, 0.80, 0.35),
+	},
+	"pebre": {
+		"nombre": "Pebre picante", "desc": "+20% daño",
+		"max": 4, "color": Color(0.90, 0.35, 0.30),
+	},
+	"empanada": {
+		"nombre": "Empanada de pino", "desc": "+20 vida maxima y cura 30",
+		"max": 4, "color": Color(0.90, 0.70, 0.40),
+	},
+	"mote": {
+		"nombre": "Mote con huesillo", "desc": "+0.6 vida por segundo",
+		"max": 4, "color": Color(0.85, 0.60, 0.35),
+	},
+	"hilo_curado": {
+		"nombre": "Hilo curado", "desc": "+20% velocidad de ataque",
+		"max": 4, "color": Color(0.60, 0.85, 0.95),
+	},
+	"iman": {
+		"nombre": "Iman de feria", "desc": "+50 radio de recogida",
+		"max": 4, "color": Color(0.65, 0.65, 0.95),
+	},
+	"zapatillas": {
+		"nombre": "Zapatillas de fonda", "desc": "+12% velocidad y +10 vida",
+		"max": 4, "color": Color(0.55, 0.90, 0.60),
+	},
+}
+
+
+# --- Evoluciones ------------------------------------------------------------
+# Arma al maximo + su pasiva al maximo = version evolucionada. Es la
+# recompensa por comprometerse con un camino en vez de tomar de todo un poco.
+const EVOLUCIONES := [
+	{
+		"arma": "anticucho", "pasiva": "pebre",
+		"nombre": "Parrillada completa",
+		"desc": "El anticucho dispara en todas las direcciones",
+		"color": Color(1.0, 0.42, 0.12),
+	},
+	{
+		"arma": "cacerola", "pasiva": "piscola",
+		"nombre": "Cacerolazo nacional",
+		"desc": "Radio enorme y empuja a los enemigos",
+		"color": Color(0.98, 0.84, 0.36),
+	},
+	{
+		"arma": "volantin", "pasiva": "hilo_curado",
+		"nombre": "Comision de volantines",
+		"desc": "Diez volantines, mas lejos y mas rapidos",
+		"color": Color(0.98, 0.78, 0.32),
+	},
+	{
+		"arma": "chuzo", "pasiva": "zapatillas",
+		"nombre": "Chuzo del minero",
+		"desc": "El arco se cierra en 360 grados",
+		"color": Color(0.98, 0.72, 0.30),
+	},
+	{
+		"arma": "terremoto", "pasiva": "mote",
+		"nombre": "Maremoto",
+		"desc": "Charcos enormes que duran mucho mas",
+		"color": Color(0.55, 0.80, 0.95),
+	},
+	{
+		"arma": "quiltro_fiel", "pasiva": "empanada",
+		"nombre": "La jauria",
+		"desc": "Tres quiltros en vez de uno",
+		"color": Color(0.92, 0.86, 0.72),
+	},
+	{
+		"arma": "micro", "pasiva": "iman",
+		"nombre": "Transantiago",
+		"desc": "Tres micros cruzando a la vez",
+		"color": Color(0.35, 0.66, 0.92),
 	},
 ]

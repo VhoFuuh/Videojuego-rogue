@@ -11,10 +11,43 @@ var mejor_tiempo := 0.0
 var mejor_nivel := 0
 var jefes_derrotados := 0
 var partidas := 0
+var personajes := ["huaso"]  # desbloqueados
+var personaje := "huaso"     # el elegido para la proxima partida
 
 
 func _ready() -> void:
 	cargar()
+
+
+func datos_personaje(id: String) -> Dictionary:
+	for p in Data.PERSONAJES:
+		if p.id == id:
+			return p
+	return Data.PERSONAJES[0]
+
+
+func personaje_actual() -> Dictionary:
+	return datos_personaje(personaje)
+
+
+func tiene_personaje(id: String) -> bool:
+	return personajes.has(id)
+
+
+func desbloquear_personaje(p: Dictionary) -> bool:
+	if tiene_personaje(p.id) or lucas < int(p.costo):
+		return false
+	lucas -= int(p.costo)
+	personajes.append(p.id)
+	guardar()
+	return true
+
+
+func elegir_personaje(id: String) -> void:
+	if not tiene_personaje(id):
+		return
+	personaje = id
+	guardar()
 
 
 func nivel_de(id: String) -> int:
@@ -64,6 +97,8 @@ func guardar() -> void:
 		"mejor_nivel": mejor_nivel,
 		"jefes_derrotados": jefes_derrotados,
 		"partidas": partidas,
+		"personajes": personajes,
+		"personaje": personaje,
 	}, "\t"))
 	f.close()
 
@@ -89,6 +124,17 @@ func cargar() -> void:
 	jefes_derrotados = int(datos.get("jefes_derrotados", 0))
 	partidas = int(datos.get("partidas", 0))
 
+	# Solo se aceptan personajes que existan hoy; el huaso siempre esta.
+	personajes = ["huaso"]
+	var lista = datos.get("personajes", [])
+	if typeof(lista) == TYPE_ARRAY:
+		for p in Data.PERSONAJES:
+			if p.id != "huaso" and lista.has(p.id):
+				personajes.append(p.id)
+	personaje = str(datos.get("personaje", "huaso"))
+	if not tiene_personaje(personaje):
+		personaje = "huaso"
+
 	permanentes = {}
 	var guardadas = datos.get("permanentes", {})
 	if typeof(guardadas) == TYPE_DICTIONARY:
@@ -107,4 +153,6 @@ func borrar_todo() -> void:
 	mejor_nivel = 0
 	jefes_derrotados = 0
 	partidas = 0
+	personajes = ["huaso"]
+	personaje = "huaso"
 	guardar()

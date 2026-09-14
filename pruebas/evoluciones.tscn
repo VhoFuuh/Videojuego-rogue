@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cevoluciones01"]
+
+[ext_resource type="Script" path="res://pruebas/evoluciones.gd" id="1_evo"]
+
+[node name="PruebaEvoluciones" type="Node"]
+script = ExtResource("1_evo")

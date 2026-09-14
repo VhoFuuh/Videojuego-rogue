@@ -1,26 +1,21 @@
-extends Node2D
+extends Arma
 
 # Volantines que giran alrededor del jugador y cortan con el hilo curado.
+# Evolucion (Comision de volantines): mas volantines, mas lejos y mas rapidos.
 
 const RADIO_CORTE := 20.0
 const INTERVALO_CORTE := 0.25
 
-var nivel := 1
-
 var _angulo := 0.0
 var _espera_corte := 0.0
-var _jugador: Player
-
-
-func _ready() -> void:
-	_jugador = get_parent() as Player
 
 
 func _process(delta: float) -> void:
 	if _jugador == null:
 		return
 
-	_angulo += delta * 2.4 * _jugador.mult_vel_ataque
+	var giro := 2.4 * (1.7 if evolucionada else 1.0)
+	_angulo += delta * giro * _jugador.mult_vel_ataque
 	queue_redraw()
 
 	_espera_corte -= delta
@@ -30,15 +25,17 @@ func _process(delta: float) -> void:
 
 
 func cantidad() -> int:
-	return min(2 + nivel, 8)
+	if evolucionada:
+		return 10
+	return mini(2 + nivel, 8)
 
 
 func distancia() -> float:
-	return 70.0 + nivel * 6.0
+	return (70.0 + nivel * 6.0) * (1.5 if evolucionada else 1.0)
 
 
 func dano() -> int:
-	return 5 + nivel * 3
+	return (5 + nivel * 3) * (2 if evolucionada else 1)
 
 
 func _posiciones() -> Array[Vector2]:
@@ -51,22 +48,19 @@ func _posiciones() -> Array[Vector2]:
 
 
 func _cortar() -> void:
-	var golpe := int(dano() * _jugador.mult_dano)
+	var d := golpe(dano())
 	var puntos := _posiciones()
-	for enemigo in get_tree().get_nodes_in_group("enemigos"):
+	for enemigo in enemigos():
 		var local: Vector2 = enemigo.global_position - _jugador.global_position
 		for p in puntos:
 			if local.distance_to(p) <= RADIO_CORTE:
-				enemigo.recibir_dano(golpe)
+				enemigo.recibir_dano(d)
 				break
 
 
 func _draw() -> void:
-	var c := Color(0.95, 0.55, 0.75)
+	var c := Color(0.95, 0.55, 0.75) if not evolucionada else Color(0.98, 0.78, 0.32)
 	for p in _posiciones():
 		draw_line(Vector2.ZERO, p, Color(0.9, 0.9, 0.9, 0.25), 1.0)
-		# Rombo simple: el volantin.
-		var puntos := PackedVector2Array([
-			p + Vector2(0, -9), p + Vector2(8, 0), p + Vector2(0, 9), p + Vector2(-8, 0)
-		])
-		draw_colored_polygon(puntos, c)
+		draw_colored_polygon(PackedVector2Array([
+			p + Vector2(0, -9), p + Vector2(8, 0), p + Vector2(0, 9), p + Vector2(-8, 0)]), c)

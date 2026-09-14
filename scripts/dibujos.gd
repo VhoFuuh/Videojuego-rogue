@@ -35,7 +35,74 @@ static func mover(puntos: PackedVector2Array, desplazamiento: Vector2) -> Packed
 	return salida
 
 
-# --- Jugador ----------------------------------------------------------------
+# --- Jugadores --------------------------------------------------------------
+
+static func personaje(c: CanvasItem, id: String, r: float, piel: Color, mirando: Vector2) -> void:
+	match id:
+		"minero": _minero(c, r, piel, mirando)
+		"pescadora": _pescadora(c, r, piel, mirando)
+		"micrero": _micrero(c, r, piel, mirando)
+		_: huaso(c, r, piel, mirando)
+
+
+static func _ojos(c: CanvasItem, r: float, altura: float, lado: float) -> void:
+	var ojo := Vector2(lado * r * 0.16, altura)
+	c.draw_circle(ojo, r * 0.07, BORDE)
+	c.draw_circle(ojo + Vector2(lado * r * 0.20, 0), r * 0.07, BORDE)
+
+
+static func _torso(c: CanvasItem, r: float, color: Color, franja: Color) -> void:
+	figura(c, PackedVector2Array([
+		Vector2(-r * 0.95, r * 0.95), Vector2(r * 0.95, r * 0.95),
+		Vector2(r * 0.55, -r * 0.15), Vector2(-r * 0.55, -r * 0.15),
+	]), color, 1.5)
+	c.draw_line(Vector2(-r * 0.8, r * 0.5), Vector2(r * 0.8, r * 0.5), franja, 2.0)
+
+
+static func _minero(c: CanvasItem, r: float, piel: Color, mirando: Vector2) -> void:
+	var lado := 1.0 if mirando.x >= 0.0 else -1.0
+	_torso(c, r, Color(0.24, 0.30, 0.46), Color(0.85, 0.80, 0.35))
+	figura(c, elipse(Vector2(0, -r * 0.45), r * 0.42, r * 0.42), piel, 1.5)
+	# Casco con lampara.
+	figura(c, elipse(Vector2(0, -r * 0.72), r * 0.62, r * 0.40), Color(0.92, 0.70, 0.16), 1.5)
+	figura(c, elipse(Vector2(0, -r * 0.60), r * 0.78, r * 0.16), Color(0.82, 0.60, 0.12), 1.5)
+	c.draw_circle(Vector2(0, -r * 0.86), r * 0.13, Color(1.0, 0.98, 0.70))
+	_ojos(c, r, -r * 0.42, lado)
+
+
+static func _pescadora(c: CanvasItem, r: float, piel: Color, mirando: Vector2) -> void:
+	var lado := 1.0 if mirando.x >= 0.0 else -1.0
+	_torso(c, r, Color(0.90, 0.62, 0.18), Color(0.30, 0.34, 0.40))
+	figura(c, elipse(Vector2(0, -r * 0.45), r * 0.42, r * 0.42), piel, 1.5)
+	# Pañuelo amarrado en la cabeza.
+	figura(c, PackedVector2Array([
+		Vector2(-r * 0.48, -r * 0.52), Vector2(-r * 0.30, -r * 0.95),
+		Vector2(r * 0.30, -r * 0.95), Vector2(r * 0.48, -r * 0.52)]),
+		Color(0.80, 0.26, 0.34), 1.5)
+	figura(c, PackedVector2Array([
+		Vector2(r * 0.40, -r * 0.62), Vector2(r * 0.85, -r * 0.80),
+		Vector2(r * 0.70, -r * 0.40)]), Color(0.70, 0.20, 0.28), 1.0)
+	# Canasto al costado.
+	figura(c, PackedVector2Array([
+		Vector2(-r * 1.25, r * 0.20), Vector2(-r * 0.70, r * 0.20),
+		Vector2(-r * 0.80, r * 0.75), Vector2(-r * 1.15, r * 0.75)]),
+		Color(0.62, 0.46, 0.28), 1.5)
+	_ojos(c, r, -r * 0.42, lado)
+
+
+static func _micrero(c: CanvasItem, r: float, piel: Color, mirando: Vector2) -> void:
+	var lado := 1.0 if mirando.x >= 0.0 else -1.0
+	_torso(c, r, Color(0.42, 0.62, 0.82), Color(0.95, 0.95, 0.95))
+	figura(c, elipse(Vector2(0, -r * 0.45), r * 0.42, r * 0.42), piel, 1.5)
+	# Jockey.
+	figura(c, elipse(Vector2(0, -r * 0.72), r * 0.46, r * 0.30), Color(0.20, 0.22, 0.28), 1.5)
+	figura(c, PackedVector2Array([
+		Vector2(lado * r * 0.10, -r * 0.78), Vector2(lado * r * 0.95, -r * 0.72),
+		Vector2(lado * r * 0.95, -r * 0.58), Vector2(lado * r * 0.10, -r * 0.56)]),
+		Color(0.16, 0.18, 0.23), 1.5)
+	# Lentes de sol.
+	c.draw_rect(Rect2(-r * 0.30, -r * 0.50, r * 0.60, r * 0.16), Color(0.12, 0.12, 0.16))
+
 
 static func huaso(c: CanvasItem, r: float, cuerpo: Color, mirando: Vector2) -> void:
 	var lado := 1.0 if mirando.x >= 0.0 else -1.0

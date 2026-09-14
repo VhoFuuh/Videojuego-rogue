@@ -8,6 +8,7 @@ var direccion := Vector2.RIGHT
 var velocidad := 560.0
 var dano := 10
 var perforacion := 1
+var ardiente := false
 
 var _tiempo := 0.0
 var _golpeados := {}
@@ -41,5 +42,8 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	# Anticucho: palito con fuego.
 	draw_line(Vector2(-10, 0), Vector2(10, 0), Color(0.75, 0.55, 0.35), 3.0)
-	draw_circle(Vector2(8, 0), 5.0, Color(1.0, 0.55, 0.15))
-	draw_circle(Vector2(8, 0), 2.5, Color(1.0, 0.90, 0.55))
+	var escala := 1.7 if ardiente else 1.0
+	if ardiente:
+		draw_circle(Vector2(8, 0), 9.0, Color(1.0, 0.35, 0.10, 0.45))
+	draw_circle(Vector2(8, 0), 5.0 * escala, Color(1.0, 0.55, 0.15))
+	draw_circle(Vector2(8, 0), 2.5 * escala, Color(1.0, 0.90, 0.55))

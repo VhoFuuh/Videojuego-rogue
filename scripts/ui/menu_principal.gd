@@ -60,6 +60,11 @@ func _construir() -> void:
 		get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	columna.add_child(jugar)
 
+	var personajes := Estilo.boton("Personajes  (%s)" % Guardado.personaje_actual().nombre)
+	personajes.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file("res://scenes/personajes.tscn"))
+	columna.add_child(personajes)
+
 	var fonda := Estilo.boton("La fonda  ($ %d)" % Guardado.lucas)
 	fonda.pressed.connect(func() -> void:
 		get_tree().change_scene_to_file("res://scenes/fonda.tscn"))

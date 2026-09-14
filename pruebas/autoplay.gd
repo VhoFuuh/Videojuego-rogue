@@ -65,12 +65,16 @@ func _process(delta: float) -> void:
 
 	if juego.tiempo >= proximo_log:
 		proximo_log += 30.0
-		print("t=%3.0fs bioma=%d(%s) enemigos=%3d jefes=%d lucas=%4d armas=%s vida=%3d nivel=%2d" % [
-			juego.tiempo, juego.indice_bioma, Data.BIOMAS[juego.indice_bioma].nombre,
+		var detalle := []
+		for id in juego._jugador.armas:
+			var a = juego._jugador.armas[id]
+			detalle.append("%s%d%s" % [id.substr(0, 5), a.nivel, "*" if a.evolucionada else ""])
+		print("t=%3.0fs bioma=%d enemigos=%3d jefes=%d lucas=%4d vida=%3d nivel=%2d armas=%s pasivas=%s" % [
+			juego.tiempo, juego.indice_bioma,
 			get_tree().get_nodes_in_group("enemigos").size(),
 			get_tree().get_nodes_in_group("jefes").size(),
-			juego.lucas, str(juego._jugador.armas.keys()),
-			juego._jugador.vida, juego._jugador.nivel])
+			juego.lucas, juego._jugador.vida, juego._jugador.nivel,
+			str(detalle), str(juego._jugador.pasivas)])
 
 	if juego.tiempo > 400.0:
 		print("SOBREVIVIO el limite de la prueba | mejoras=%d" % mejoras)
@@ -81,14 +85,17 @@ func _mover(tiempo: float) -> void:
 	for accion in ["move_left", "move_right", "move_up", "move_down"]:
 		Input.action_release(accion)
 
-	# Kiting: arranca del promedio de los enemigos cercanos, como un jugador real.
+	# Ronda el borde de la horda en vez de arrancar lejos: un jugador real se
+	# mantiene cerca para que las armas cortas alcancen. Con el radio grande de
+	# antes, un personaje cuerpo a cuerpo no golpeaba nunca y moria en 10 s.
+	const RADIO_HUIDA := 130.0
 	var pos: Vector2 = juego._jugador.global_position
 	var huida := Vector2.ZERO
 	for enemigo in get_tree().get_nodes_in_group("enemigos"):
 		var delta: Vector2 = pos - enemigo.global_position
 		var d := delta.length()
-		if d < 220.0 and d > 0.1:
-			huida += delta.normalized() * (220.0 - d) / 220.0
+		if d < RADIO_HUIDA and d > 0.1:
+			huida += delta.normalized() * (RADIO_HUIDA - d) / RADIO_HUIDA
 
 	if huida.length() < 0.1:
 		huida = Vector2(cos(tiempo * 0.7), sin(tiempo * 0.7))

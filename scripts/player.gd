@@ -24,7 +24,9 @@ var nivel := 1
 var xp := 0
 var xp_necesaria := 3
 
-var armas := {}
+var personaje := "huaso"
+var armas := {}    # id -> Arma
+var pasivas := {}  # id -> nivel
 
 var _invulnerable := 0.0
 var _acumulador_regen := 0.0
@@ -45,8 +47,20 @@ func _ready() -> void:
 	forma.shape = circulo
 	add_child(forma)
 
+	_aplicar_personaje()
 	_aplicar_permanentes()
-	agregar_arma("anticucho")
+	agregar_arma(str(Guardado.personaje_actual().arma))
+
+
+func _aplicar_personaje() -> void:
+	var p := Guardado.personaje_actual()
+	personaje = str(p.id)
+	vida_maxima = int(vida_maxima * float(p.vida))
+	velocidad = minf(velocidad * float(p.velocidad), VELOCIDAD_MAXIMA)
+	mult_dano *= float(p.dano)
+	mult_vel_ataque *= float(p.vel_ataque)
+	regen += float(p.get("regen", 0.0))
+	vida = vida_maxima
 
 
 func _aplicar_permanentes() -> void:
@@ -91,7 +105,11 @@ func _draw() -> void:
 		Dibujos.elipse(Vector2(0, RADIO * 1.05), RADIO * 0.85, RADIO * 0.28),
 		Color(0, 0, 0, 0.25))
 
-	Dibujos.huaso(self, RADIO, Color(0.90, 0.76, 0.60), Vector2(_lado, 0))
+	Dibujos.personaje(self, personaje, RADIO, Color(0.90, 0.76, 0.60), Vector2(_lado, 0))
+
+
+func mirando() -> Vector2:
+	return _mirando
 
 
 func _actualizar_tinte() -> void:
@@ -130,25 +148,40 @@ func ganar_xp(cantidad: int) -> void:
 
 func agregar_arma(id: String) -> void:
 	if armas.has(id):
-		armas[id].nivel += 1
+		armas[id].subir_nivel()
 		return
-	var arma: Node2D
-	match id:
-		"anticucho":
-			arma = preload("res://scripts/weapons/anticucho.gd").new()
-		"cacerola":
-			arma = preload("res://scripts/weapons/cacerola.gd").new()
-		"volantin":
-			arma = preload("res://scripts/weapons/volantin.gd").new()
-		_:
-			return
+	if not Data.ARMAS.has(id):
+		return
+	var arma: Arma = load(Data.ARMAS[id].script).new()
 	arma.name = id
 	armas[id] = arma
 	add_child(arma)
 
 
-func aplicar_mejora(mejora: Dictionary) -> void:
-	match mejora.id:
+func nivel_arma(id: String) -> int:
+	return armas[id].nivel if armas.has(id) else 0
+
+
+func nivel_pasiva(id: String) -> int:
+	return int(pasivas.get(id, 0))
+
+
+func hay_cupo_de_arma() -> bool:
+	return armas.size() < Data.MAX_ARMAS
+
+
+func hay_cupo_de_pasiva() -> bool:
+	return pasivas.size() < Data.MAX_PASIVAS
+
+
+func subir_pasiva(id: String) -> void:
+	pasivas[id] = nivel_pasiva(id) + 1
+	_aplicar_pasiva(id)
+	vida_cambio.emit(vida, vida_maxima)
+
+
+func _aplicar_pasiva(id: String) -> void:
+	match id:
 		"piscola":
 			velocidad = minf(velocidad * 1.15, VELOCIDAD_MAXIMA)
 		"pebre":
@@ -166,6 +199,29 @@ func aplicar_mejora(mejora: Dictionary) -> void:
 			velocidad = minf(velocidad * 1.12, VELOCIDAD_MAXIMA)
 			vida_maxima += 10
 			vida += 10
-		"anticucho", "cacerola", "volantin":
-			agregar_arma(mejora.id)
+
+
+func curar(cantidad: int) -> void:
+	vida = min(vida_maxima, vida + cantidad)
+	vida_cambio.emit(vida, vida_maxima)
+
+
+func puede_evolucionar(evo: Dictionary) -> bool:
+	if not armas.has(evo.arma):
+		return false
+	var arma: Arma = armas[evo.arma]
+	if arma.evolucionada or not arma.al_maximo():
+		return false
+	return nivel_pasiva(evo.pasiva) >= int(Data.PASIVAS[evo.pasiva].max)
+
+
+# Las tres cosas que puede entregar una subida de nivel.
+func aplicar_opcion(opcion: Dictionary) -> void:
+	match opcion.tipo:
+		"arma":
+			agregar_arma(opcion.id)
+		"pasiva":
+			subir_pasiva(opcion.id)
+		"evolucion":
+			armas[opcion.arma].evolucionar()
 	vida_cambio.emit(vida, vida_maxima)
