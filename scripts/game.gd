@@ -8,13 +8,20 @@ const MARGEN_APARICION := 70.0
 const ZOOM := 1.5
 const TAMANO_CELDA := 64.0
 
+const AVISO_JEFE := 25.0
+
 var tiempo := 0.0
 var indice_bioma := -1
+var lucas := 0
+var jefes_derrotados := 0
+
+var _jefe_invocado_en := -1
 
 var _jugador: Player
 var _camara: Camera2D
 var _hud: Hud
 var _menu: MenuMejoras
+var _pausa: MenuPausa
 var _pantalla_derrota: CanvasLayer
 
 var _espera_aparicion := 0.0
@@ -38,6 +45,11 @@ func _ready() -> void:
 	_menu = preload("res://scripts/ui/level_up_menu.gd").new()
 	add_child(_menu)
 
+	_pausa = preload("res://scripts/ui/pause_menu.gd").new()
+	add_child(_pausa)
+	_pausa.continuar.connect(_reanudar)
+	_pausa.salir.connect(volver_a_la_fonda)
+
 	_jugador.vida_cambio.connect(_hud.set_vida)
 	_jugador.xp_cambio.connect(_hud.set_xp)
 	_jugador.subio_nivel.connect(_on_subio_nivel)
@@ -48,6 +60,7 @@ func _ready() -> void:
 	_hud.set_xp(_jugador.xp, _jugador.xp_necesaria, _jugador.nivel)
 	_cambiar_bioma(0)
 	_oleada_inicial()
+	Audio.tocar_musica()
 
 
 func _process(delta: float) -> void:
@@ -55,6 +68,14 @@ func _process(delta: float) -> void:
 		if Input.is_action_just_pressed("restart"):
 			get_tree().paused = false
 			get_tree().reload_current_scene()
+		elif Input.is_action_just_pressed("ui_cancel"):
+			volver_a_la_fonda()
+		return
+
+	# No se puede pausar mientras se elige mejora: ya esta pausado ahi.
+	if Input.is_action_just_pressed("ui_cancel") and not _menu.visible:
+		get_tree().paused = true
+		_pausa.mostrar()
 		return
 
 	tiempo += delta
@@ -64,6 +85,11 @@ func _process(delta: float) -> void:
 	var bioma_actual := mini(int(tiempo / Data.DURACION_BIOMA), Data.BIOMAS.size() - 1)
 	if bioma_actual != indice_bioma:
 		_cambiar_bioma(bioma_actual)
+
+	# El jefe aparece antes de que termine el bioma: es el climax de la etapa.
+	var fin_bioma := float(indice_bioma + 1) * Data.DURACION_BIOMA
+	if _jefe_invocado_en != indice_bioma and tiempo >= fin_bioma - AVISO_JEFE:
+		_invocar_jefe()
 
 	_espera_aparicion -= delta
 	if _espera_aparicion <= 0.0:
@@ -144,7 +170,34 @@ func _oleada_inicial() -> void:
 		add_child(enemigo)
 
 
-func _on_enemigo_murio(posicion: Vector2, xp: int) -> void:
+func _invocar_jefe() -> void:
+	_jefe_invocado_en = indice_bioma
+	var d: Dictionary = Data.JEFES[indice_bioma]
+
+	var jefe := Enemigo.new()
+	jefe.configurar_jefe(indice_bioma, 1.0 + tiempo / 600.0 * 0.5)
+	jefe.global_position = _punto_fuera_de_pantalla()
+	jefe.murio.connect(_on_enemigo_murio)
+	jefe.murio.connect(_on_jefe_murio.unbind(3))
+	jefe.vida_jefe_cambio.connect(_hud.set_vida_jefe)
+	add_child(jefe)
+
+	_hud.mostrar_jefe(d.nombre, jefe.vida)
+	_hud.anunciar(d.nombre)
+	Audio.sonar("jefe")
+
+
+func _on_jefe_murio() -> void:
+	jefes_derrotados += 1
+	_hud.ocultar_jefe()
+	_hud.anunciar("¡Caiste, %s!" % Data.JEFES[indice_bioma].nombre)
+
+
+func _on_enemigo_murio(posicion: Vector2, xp: int, lucas_ganadas: int) -> void:
+	if lucas_ganadas > 0:
+		lucas += lucas_ganadas
+		_hud.set_lucas(lucas)
+
 	var orbe := OrbeXP.new()
 	orbe.valor = xp
 	orbe.global_position = posicion
@@ -207,6 +260,16 @@ func _on_mejora_elegida(mejora: Dictionary) -> void:
 		get_tree().paused = false
 
 
+func _reanudar() -> void:
+	_pausa.ocultar()
+	get_tree().paused = false
+
+
+func volver_a_la_fonda() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/fonda.tscn")
+
+
 # --- Derrota ----------------------------------------------------------------
 
 func _on_jugador_murio() -> void:
@@ -215,6 +278,8 @@ func _on_jugador_murio() -> void:
 	_terminado = true
 	var nivel_final := _jugador.nivel
 	_jugador.queue_free()
+	_hud.ocultar_jefe()
+	Guardado.registrar_partida(lucas, tiempo, nivel_final, jefes_derrotados)
 
 	_pantalla_derrota = CanvasLayer.new()
 	_pantalla_derrota.layer = 30
@@ -238,7 +303,8 @@ func _on_jugador_murio() -> void:
 		["Sobreviviste %d:%02d en %s" % [
 			int(tiempo) / 60, int(tiempo) % 60, Data.BIOMAS[indice_bioma].nombre], 22],
 		["Llegaste a nivel %d" % nivel_final, 22],
-		["Presiona R para otra run", 18],
+		["Ganaste $ %d lucas" % lucas, 24],
+		["R para otra run    ·    ESC para volver a la fonda", 18],
 	]
 	for linea in lineas:
 		var etiqueta := Label.new()

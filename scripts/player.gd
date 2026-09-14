@@ -30,6 +30,8 @@ var _invulnerable := 0.0
 var _acumulador_regen := 0.0
 var _flash := 0.0
 var _mirando := Vector2.RIGHT
+var _lado := 1.0
+var _tinte := Color(1, 1, 1)
 
 
 func _ready() -> void:
@@ -43,7 +45,20 @@ func _ready() -> void:
 	forma.shape = circulo
 	add_child(forma)
 
+	_aplicar_permanentes()
 	agregar_arma("anticucho")
+
+
+func _aplicar_permanentes() -> void:
+	# Lo comprado en la fonda entre partidas. Se aplica antes de empezar.
+	vida_maxima += 15 * Guardado.nivel_de("vida_campo")
+	vida = vida_maxima
+	mult_dano *= 1.0 + 0.08 * Guardado.nivel_de("buena_mano")
+	velocidad = minf(
+		velocidad * (1.0 + 0.05 * Guardado.nivel_de("piernas")), VELOCIDAD_MAXIMA)
+	radio_recogida += 25.0 * Guardado.nivel_de("bolsillo")
+	regen += 0.25 * Guardado.nivel_de("once")
+	mult_vel_ataque *= 1.0 + 0.08 * Guardado.nivel_de("buen_ojo")
 
 
 func _physics_process(delta: float) -> void:
@@ -51,13 +66,16 @@ func _physics_process(delta: float) -> void:
 	velocity = direccion * velocidad
 	if direccion != Vector2.ZERO:
 		_mirando = direccion
+		if absf(direccion.x) > 0.1 and signf(direccion.x) != _lado:
+			_lado = signf(direccion.x)
+			queue_redraw()
 	move_and_slide()
 
 	if _invulnerable > 0.0:
 		_invulnerable -= delta
 	if _flash > 0.0:
 		_flash -= delta
-		queue_redraw()
+	_actualizar_tinte()
 
 	if regen > 0.0 and vida < vida_maxima:
 		_acumulador_regen += regen * delta
@@ -69,25 +87,31 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var cuerpo := Color(0.95, 0.88, 0.65)
+	draw_colored_polygon(
+		Dibujos.elipse(Vector2(0, RADIO * 1.05), RADIO * 0.85, RADIO * 0.28),
+		Color(0, 0, 0, 0.25))
+
+	Dibujos.huaso(self, RADIO, Color(0.90, 0.76, 0.60), Vector2(_lado, 0))
+
+
+func _actualizar_tinte() -> void:
+	var tinte := Color(1, 1, 1)
 	if _flash > 0.0:
-		cuerpo = Color(1.0, 0.35, 0.35)
+		tinte = Color(1.9, 0.8, 0.8)
 	elif _invulnerable > 0.0:
-		cuerpo = cuerpo.darkened(0.25)
-	# Contorno oscuro: sin esto el jugador se pierde entre el monton de enemigos.
-	draw_circle(Vector2.ZERO, RADIO + 3.0, Color(0.08, 0.06, 0.09))
-	draw_circle(Vector2.ZERO, RADIO, cuerpo)
-	# Sombrero de huaso, apunta hacia donde camina.
-	draw_circle(_mirando * 7.0, RADIO * 0.5, Color(0.32, 0.19, 0.15))
+		tinte = Color(0.75, 0.75, 0.80)
+	if tinte != _tinte:
+		_tinte = tinte
+		modulate = tinte
 
 
 func recibir_dano(cantidad: int) -> void:
 	if _invulnerable > 0.0 or vida <= 0:
 		return
 	vida -= cantidad
+	Audio.sonar("dano")
 	_invulnerable = TIEMPO_INVULNERABLE
 	_flash = 0.15
-	queue_redraw()
 	vida_cambio.emit(max(vida, 0), vida_maxima)
 	if vida <= 0:
 		murio.emit()
@@ -99,6 +123,7 @@ func ganar_xp(cantidad: int) -> void:
 		xp -= xp_necesaria
 		nivel += 1
 		xp_necesaria = int(xp_necesaria * 1.25) + 2
+		Audio.sonar("nivel")
 		subio_nivel.emit()
 	xp_cambio.emit(xp, xp_necesaria, nivel)
 

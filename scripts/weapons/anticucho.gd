@@ -56,6 +56,8 @@ func _disparar() -> void:
 	if objetivo == null:
 		return
 
+	Audio.sonar("disparo", randf_range(0.92, 1.08))
+
 	var base := (objetivo.global_position - _jugador.global_position).normalized()
 	var total := proyectiles()
 	var contenedor := _jugador.get_parent()

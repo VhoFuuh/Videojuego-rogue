@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cpruebamenus01"]
+
+[ext_resource type="Script" path="res://pruebas/menus.gd" id="1_men"]
+
+[node name="PruebaMenus" type="Node"]
+script = ExtResource("1_men")

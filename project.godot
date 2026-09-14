@@ -7,8 +7,13 @@ config_version=5
 
 config/name="Fonda Eterna"
 config/description="Roguelike bullet-heaven ambientado en Chile."
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/menu.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[autoload]
+
+Audio="*res://scripts/audio.gd"
+Guardado="*res://scripts/guardado.gd"
 
 [display]
 

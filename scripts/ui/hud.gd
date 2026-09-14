@@ -9,6 +9,9 @@ var _lbl_bioma: Label
 var _lbl_nivel: Label
 var _lbl_anuncio: Label
 var _tiempo_anuncio := 0.0
+var _barra_jefe: ProgressBar
+var _lbl_jefe: Label
+var _lbl_lucas: Label
 
 
 func _ready() -> void:
@@ -41,6 +44,17 @@ func _ready() -> void:
 	_lbl_nivel.offset_top = 27.0
 	add_child(_lbl_nivel)
 
+	_lbl_lucas = _crear_label(18)
+	_lbl_lucas.anchor_left = 1.0
+	_lbl_lucas.anchor_right = 1.0
+	_lbl_lucas.offset_left = -130.0
+	_lbl_lucas.offset_right = -16.0
+	_lbl_lucas.offset_top = 27.0
+	_lbl_lucas.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_lbl_lucas.modulate = Color(0.98, 0.86, 0.42)
+	_lbl_lucas.text = "$ 0"
+	add_child(_lbl_lucas)
+
 	_lbl_tiempo = _crear_label(34)
 	_lbl_tiempo.anchor_left = 0.5
 	_lbl_tiempo.anchor_right = 0.5
@@ -59,6 +73,30 @@ func _ready() -> void:
 	_lbl_bioma.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_lbl_bioma.modulate = Color(1, 1, 1, 0.7)
 	add_child(_lbl_bioma)
+
+	_barra_jefe = _crear_barra(Color(0.88, 0.28, 0.32), Color(0.16, 0.08, 0.10))
+	_barra_jefe.anchor_left = 0.5
+	_barra_jefe.anchor_right = 0.5
+	_barra_jefe.anchor_top = 1.0
+	_barra_jefe.anchor_bottom = 1.0
+	_barra_jefe.offset_left = -300.0
+	_barra_jefe.offset_right = 300.0
+	_barra_jefe.offset_top = -52.0
+	_barra_jefe.offset_bottom = -30.0
+	_barra_jefe.visible = false
+	add_child(_barra_jefe)
+
+	_lbl_jefe = _crear_label(20)
+	_lbl_jefe.anchor_left = 0.5
+	_lbl_jefe.anchor_right = 0.5
+	_lbl_jefe.anchor_top = 1.0
+	_lbl_jefe.anchor_bottom = 1.0
+	_lbl_jefe.offset_left = -300.0
+	_lbl_jefe.offset_right = 300.0
+	_lbl_jefe.offset_top = -80.0
+	_lbl_jefe.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_lbl_jefe.visible = false
+	add_child(_lbl_jefe)
 
 	_lbl_anuncio = _crear_label(52)
 	_lbl_anuncio.anchor_left = 0.5
@@ -79,6 +117,28 @@ func _process(delta: float) -> void:
 	_tiempo_anuncio -= delta
 	# Se mantiene opaco y recien al final se desvanece.
 	_lbl_anuncio.modulate = Color(1, 1, 1, clampf(_tiempo_anuncio, 0.0, 1.0))
+
+
+func mostrar_jefe(nombre: String, vida: int) -> void:
+	_lbl_jefe.text = nombre
+	_barra_jefe.max_value = vida
+	_barra_jefe.value = vida
+	_lbl_jefe.visible = true
+	_barra_jefe.visible = true
+
+
+func set_vida_jefe(actual: int, maxima: int) -> void:
+	_barra_jefe.max_value = maxima
+	_barra_jefe.value = actual
+
+
+func ocultar_jefe() -> void:
+	_lbl_jefe.visible = false
+	_barra_jefe.visible = false
+
+
+func set_lucas(cantidad: int) -> void:
+	_lbl_lucas.text = "$ %d" % cantidad
 
 
 func anunciar(texto: String) -> void:

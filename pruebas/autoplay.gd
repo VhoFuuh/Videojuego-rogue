@@ -8,10 +8,11 @@ var proximo_log := 0.0
 var mejoras := 0
 
 const CARPETA := "user://capturas"
-var momentos := [4.0, 70.0, 121.5]
+var momentos := [4.0, 70.0, 121.5, 240.0]
 var capturadas := 0
 var menu_capturado := false
 var cerrando := false
+var jefe_capturado := false
 
 
 func _capturar(nombre: String) -> void:
@@ -58,13 +59,17 @@ func _process(delta: float) -> void:
 		capturadas += 1
 		_capturar("juego_%d" % capturadas)
 
+	if not jefe_capturado and not get_tree().get_nodes_in_group("jefes").is_empty():
+		jefe_capturado = true
+		_capturar("jefe")
+
 	if juego.tiempo >= proximo_log:
 		proximo_log += 30.0
-		print("t=%3.0fs bioma=%d(%s) enemigos=%3d proyectiles=%2d armas=%s vida=%3d nivel=%2d" % [
+		print("t=%3.0fs bioma=%d(%s) enemigos=%3d jefes=%d lucas=%4d armas=%s vida=%3d nivel=%2d" % [
 			juego.tiempo, juego.indice_bioma, Data.BIOMAS[juego.indice_bioma].nombre,
 			get_tree().get_nodes_in_group("enemigos").size(),
-			get_tree().get_nodes_in_group("proyectiles").size(),
-			str(juego._jugador.armas.keys()),
+			get_tree().get_nodes_in_group("jefes").size(),
+			juego.lucas, str(juego._jugador.armas.keys()),
 			juego._jugador.vida, juego._jugador.nivel])
 
 	if juego.tiempo > 400.0:

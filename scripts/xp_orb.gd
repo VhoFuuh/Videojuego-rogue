@@ -32,6 +32,7 @@ func _process(delta: float) -> void:
 		_velocidad = 0.0
 
 	if distancia <= 16.0:
+		Audio.sonar("xp", randf_range(0.95, 1.25), 0.5)
 		_jugador.ganar_xp(valor)
 		queue_free()
 

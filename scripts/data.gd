@@ -93,6 +93,71 @@ const ENEMIGOS := {
 	},
 }
 
+# Mejoras permanentes que se compran en la fonda entre partidas.
+# El costo de cada nivel es costo_base * (nivel_actual + 1).
+const PERMANENTES := [
+	{
+		"id": "vida_campo", "nombre": "Vida de campo",
+		"desc": "+15 vida maxima", "max": 5, "costo_base": 120,
+		"color": Color(0.88, 0.32, 0.36),
+	},
+	{
+		"id": "buena_mano", "nombre": "Buena mano",
+		"desc": "+8% daño", "max": 5, "costo_base": 150,
+		"color": Color(0.92, 0.58, 0.25),
+	},
+	{
+		"id": "piernas", "nombre": "Piernas de huaso",
+		"desc": "+5% velocidad", "max": 3, "costo_base": 140,
+		"color": Color(0.55, 0.88, 0.58),
+	},
+	{
+		"id": "bolsillo", "nombre": "Bolsillo grande",
+		"desc": "+25 radio de recogida", "max": 3, "costo_base": 100,
+		"color": Color(0.62, 0.66, 0.95),
+	},
+	{
+		"id": "once", "nombre": "La once",
+		"desc": "+0.25 vida regenerada por segundo", "max": 4, "costo_base": 180,
+		"color": Color(0.86, 0.62, 0.36),
+	},
+	{
+		"id": "buen_ojo", "nombre": "Buen ojo",
+		"desc": "+8% velocidad de ataque", "max": 4, "costo_base": 170,
+		"color": Color(0.60, 0.86, 0.95),
+	},
+]
+
+
+# Un jefe por bioma. "figura" dice que silueta usar de dibujos.gd.
+const JEFES := [
+	{
+		"nombre": "Don Fondita", "figura": "borracho",
+		"vida": 900, "velocidad": 78.0, "dano": 26, "radio": 46.0,
+		"xp": 45, "lucas": 60, "color": Color(0.82, 0.30, 0.38),
+	},
+	{
+		"nombre": "Momia Ancestral", "figura": "momia",
+		"vida": 1500, "velocidad": 88.0, "dano": 30, "radio": 48.0,
+		"xp": 60, "lucas": 90, "color": Color(0.86, 0.78, 0.55),
+	},
+	{
+		"nombre": "Colo Colo Mayor", "figura": "colo_colo",
+		"vida": 2300, "velocidad": 122.0, "dano": 34, "radio": 46.0,
+		"xp": 80, "lucas": 130, "color": Color(0.92, 0.52, 0.16),
+	},
+	{
+		"nombre": "El Invunche", "figura": "invunche",
+		"vida": 3400, "velocidad": 96.0, "dano": 40, "radio": 52.0,
+		"xp": 105, "lucas": 180, "color": Color(0.66, 0.24, 0.30),
+	},
+	{
+		"nombre": "Moai Ancestral", "figura": "moai",
+		"vida": 5200, "velocidad": 74.0, "dano": 48, "radio": 60.0,
+		"xp": 150, "lucas": 260, "color": Color(0.58, 0.58, 0.55),
+	},
+]
+
 # Cada mejora se aplica en player.gd -> aplicar_mejora().
 # "arma" significa que desbloquea o sube de nivel un arma.
 const MEJORAS := [
